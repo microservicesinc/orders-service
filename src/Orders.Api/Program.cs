@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Orders.Api.Configuration;
 using Orders.Api.Data;
 using Orders.Api.Endpoints;
+using Orders.Application.Commands;
 using Orders.Application.Queries; 
 using Orders.Domain.Infrastructure.Data;
 
@@ -28,6 +29,7 @@ if (builder.Environment.IsDevelopment())
     
     // Register the Application Layer query handler abstraction
     builder.Services.AddScoped<GetAllOrdersQueryHandler>();
+    builder.Services.AddScoped<CreateOrderCommandHandler>();
 }
 
 // Build the application host instance container (Locks service graph as Read-Only)
@@ -43,7 +45,7 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var orderRepository = scope.ServiceProvider.GetRequiredService<IOrderRepository>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    await OrderSeeder.SeedAsync(orderRepository, logger);
+    //await OrderSeeder.SeedAsync(orderRepository, logger);
 }
 
 app.UseHttpsRedirection();
