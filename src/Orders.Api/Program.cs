@@ -24,11 +24,17 @@ builder.Services.AddOpenApiDocument(options =>
 // Configure development dependencies safely before builder.Build()
 if (builder.Environment.IsDevelopment())
 {
-    // This extension method automatically registers IAmazonDynamoDB AND maps IOrderRepository to DynamoOrderRepository
+    // This extension method automatically registers IAmazonDynamoDB AND maps 
+    // IOrderRepository to DynamoOrderRepository
     builder.Services.AddLocalDynamoDb(builder.Configuration);
+
+    // This extension method automatically registers IAmazonSQS AND maps IOrderRepository 
+    // to DynamoOrderRepository
+    builder.Services.AddLocalSqs(builder.Configuration);
     
     // Register the Application Layer query handler abstraction
     builder.Services.AddScoped<GetAllOrdersQueryHandler>();
+    builder.Services.AddScoped<GetOrderByIdQueryHandler>();
     builder.Services.AddScoped<CreateOrderCommandHandler>();
 }
 
@@ -49,8 +55,5 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-// Map Minimal API route endpoints configurations
 app.MapOrderEndpoints();
-
 app.Run();

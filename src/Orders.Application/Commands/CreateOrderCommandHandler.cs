@@ -1,33 +1,48 @@
+using Amazon.SQS;
+using Amazon.SQS.Model;
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Orders.Domain.Core.Domain;
 using Orders.Domain.Infrastructure.Data;
-
 namespace Orders.Application.Commands
 {
     public class CreateOrderCommandHandler
     {
         private readonly IOrderRepository _repository;
+        private readonly IAmazonSQS _sqsClient;
+        private const string InventoryQueueUrl = "http://localhost:4566/000000000000/StockUpdateQueue";
 
-        public CreateOrderCommandHandler(IOrderRepository repository)
+        public CreateOrderCommandHandler(IOrderRepository repository, IAmazonSQS sqsClient)
         {
             _repository = repository;
+            _sqsClient = sqsClient;
         }
 
         public async Task<Order> HandleAsync(CreateOrderCommand command)
         {
-            // 1. Generate an identity value conforming to business rules
             string generatedOrderId = $"ORD_{Guid.NewGuid().ToString("N").ToUpper()[..12]}";
 
-            // 2. Instantiate the pure Domain Entity (triggers internal invariant protection validation checks)
             var newOrder = new Order(
                 id: generatedOrderId,
                 itemId: command.ItemId,
-                traceId: string.IsNullOrWhiteSpace(command.TraceId) ? Guid.NewGuid().ToString("N") : command.TraceId
+                traceId: string.IsNullOrWhiteSpace(command.TraceId) ? Guid.NewGuid().ToString("N") : command.TraceId,
+                status: "PENDING"
             );
 
-            // 3. Persist the valid domain entity state to infrastructure storage layers
             await _repository.SaveAsync(newOrder);
+
+            var messagePayload = new
+            {
+                itemId = newOrder.ItemId,
+                quantityChange = -1
+            };
+
+            await _sqsClient.SendMessageAsync(new SendMessageRequest
+            {
+                QueueUrl = InventoryQueueUrl,
+                MessageBody = JsonSerializer.Serialize(messagePayload)
+            });
 
             return newOrder;
         }

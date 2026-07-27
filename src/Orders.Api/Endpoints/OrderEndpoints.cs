@@ -19,6 +19,15 @@ namespace Orders.Api.Endpoints
             })
             .WithName("GetAllOrders");
 
+            routes.MapGet("api/orders/{id}", async (string id, GetOrderByIdQueryHandler queryHandler) =>
+            {
+                var query = new GetOrderByIdQuery(id);
+                var order = await queryHandler.HandleAsync(query);
+                
+                return order is not null ? Results.Ok(order) : Results.NotFound(new { message = $"Order {id} not found." });
+            })
+            .WithName("GetOrderById");
+
             routes.MapPost("api/orders", async (CreateOrderCommand command, CreateOrderCommandHandler commandHandler) =>
             {
                 try

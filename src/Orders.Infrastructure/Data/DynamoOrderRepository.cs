@@ -65,5 +65,29 @@ namespace Orders.Infrastructure.Data
 
             return orders;
         }
+
+        public async Task<Order?> GetByIdAsync(string id)
+        {
+            var request = new ScanRequest
+            {
+                TableName = TableName,
+                FilterExpression = "id = :idValue",
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                {
+                    { ":idValue", new AttributeValue { S = id } }
+                }
+            };
+
+            var response = await _dynamoClient.ScanAsync(request);
+            if (response.Items.Count == 0) return null;
+
+            var item = response.Items[0];
+            return new Order(
+                id: item.TryGetValue("id", out var idVal) ? idVal.S : string.Empty,
+                itemId: item.TryGetValue("itemId", out var itemVal) ? itemVal.S : string.Empty,
+                traceId: item.TryGetValue("traceId", out var traceVal) ? traceVal.S : string.Empty,
+                status: item.TryGetValue("status", out var statusVal) ? statusVal.S : "PENDING"
+            );
+        }
     }
 }

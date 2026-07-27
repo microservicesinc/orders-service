@@ -8,5 +8,6 @@ namespace Orders.Domain.Infrastructure.Data
         Task<bool> HasAnyOrdersAsync();
         Task SaveAsync(Order order);
         Task<IEnumerable<Order>> GetAllAsync();
+        Task<Order?> GetByIdAsync(string id);
     }
 }

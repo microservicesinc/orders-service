@@ -102,7 +102,13 @@ awslocal dynamodb scan --table-name Orders
 curl -X POST "http://localhost:5233/api/orders" \
   -H "accept: application/json" \
   -H "Content-Type: application/json" \
-  -d "{ \"itemId\": \"ITM_01JK890X12\", \"traceId\": \"4bf92f3577b34da6a3ce929d0e0e4736\" }"
+  -d "{ \"itemId\": \"item1\", \"traceId\": \"4bf92f3577b34da6a3ce929d0e0e4736\" }"
+```
+
+### Getting the item1 data (stock)
+```sh
+aws dynamodb get-item   --table-name InventoryOrdersTable   --endpoint-url http://localhost:4566   --region us-east-1 \
+--keyy '{"PK": {"S": "ITEM#item1"}, "SK": {"S": "METADATA"}}'
 ```
 
 ### Track Collection Growth Live
